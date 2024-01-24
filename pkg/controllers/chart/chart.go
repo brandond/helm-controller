@@ -19,6 +19,7 @@ import (
 	rbaccontroller "github.com/rancher/wrangler/pkg/generated/controllers/rbac/v1"
 	"github.com/rancher/wrangler/pkg/generic"
 	"github.com/rancher/wrangler/pkg/relatedresource"
+	"github.com/sirupsen/logrus"
 	batch "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
@@ -165,6 +166,7 @@ func Register(
 }
 
 func (c *Controller) jobPatcher(namespace, name string, pt types.PatchType, data []byte) (runtime.Object, error) {
+	logrus.Infof("Replacing job %s/%s to apply %s %s", namespace, name, pt, data)
 	err := c.jobs.Delete(namespace, name, &metav1.DeleteOptions{PropagationPolicy: &deletePolicy})
 	if err == nil || apierrors.IsNotFound(err) {
 		return nil, fmt.Errorf("create or replace job")
