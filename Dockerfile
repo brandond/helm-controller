@@ -1,4 +1,4 @@
-FROM golang:1.25-alpine3.23 AS builder
+FROM golang:1.26-alpine3.23 AS builder
 
 RUN apk add --no-cache bash git gcc musl-dev
 
@@ -7,7 +7,7 @@ COPY . .
 
 RUN --mount=type=cache,id=gomod,target=/go/pkg/mod \
     --mount=type=cache,id=gobuild,target=/root/.cache/go-build \
-    GOPROXY=direct go install sigs.k8s.io/controller-tools/cmd/controller-gen@257e3a04698a16ea834c49f457de7704474f9a74; \
+    GOPROXY=direct go install sigs.k8s.io/controller-tools/cmd/controller-gen@41fba8525412a0a09a6df3014b9a7f88650584b3; \
     GOPROXY=direct go install github.com/elastic/crd-ref-docs@7de989285647936ac62ea1ff8887e25e0056bc58; \
     go generate ./...; \
     ./scripts/build
@@ -16,15 +16,15 @@ FROM scratch AS binary
 COPY --from=builder /src/bin/helm-controller /bin/
 
 # Dev stage for package, testing, and validation
-FROM golang:1.25-alpine3.23 AS dev
+FROM golang:1.26-alpine3.23 AS dev
 ARG ARCH
 ENV ARCH=$ARCH
 RUN apk add --no-cache bash git curl
 RUN if [ "${ARCH}" != "arm" ]; then \
-    GOLANGCI_VERSION=v2.7.2 && \
+    GOLANGCI_VERSION=v2.13.2 && \
     case "${ARCH}" in \
-        amd64) GOLANGCI_SHA256="ce46a1f1d890e7b667259f70bb236297f5cf8791a9b6b98b41b283d93b5b6e88" ;; \
-        arm64) GOLANGCI_SHA256="7028e810837722683dab679fb121336cfa303fecff39dfe248e3e36bc18d941b" ;; \
+        amd64) GOLANGCI_SHA256="2277d43b98ec0054280f2ac26b53268bae97682444678a59a657dd565da021d6" ;; \
+        arm64) GOLANGCI_SHA256="a2a4e0065aa41be71f7c5ac90f271b61751331e5d04314e62afe4027855f0893" ;; \
         *) echo "Unsupported architecture for golangci-lint: ${ARCH}" && exit 1 ;; \
     esac && \
     cd /tmp && \
